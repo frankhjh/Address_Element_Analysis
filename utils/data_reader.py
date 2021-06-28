@@ -1,5 +1,5 @@
-#train/dev data loader
 
+#train/dev data reader
 def read_conll_file(file_name):
         current_words = []
         current_tag_classes = []
@@ -19,8 +19,7 @@ def read_conll_file(file_name):
             if current_tag_classes != []:
                 yield (current_words, current_tag_classes) 
 
-#test data loader
-
+#test data reader
 def read_txt_file(file_name):
     addrs=[]
     with open(file_name,encoding='utf-8') as f:
