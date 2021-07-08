@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch import optim
 from encoder_model import Attn_Model
 from loss import my_loss
-from data_prepare import prepare_data
+from data_process import prepare_data
 from data_loader import train_dev_loader,test_loader
 
 def evaluate(model,metric,data_loader):
@@ -90,51 +90,3 @@ def submit(source_file,target_file,prediction):
     f2.close()
 
  
-if __name__=='__main__':
-    (train_data,dev_data,test_data),(train_tar,dev_tar),test_set,token2idx,tc2idx,token_li,tag_class_li=prepare_data('data/train.conll','data/dev.conll','data/final_test.txt')
-    #data loader
-    train_loader=train_dev_loader(train_data,train_tar,batch_size=32)
-    dev_loader=train_dev_loader(dev_data,dev_tar,batch_size=32,train=False)
-    test_loader=test_loader(test_data,batch_size=100)
-    
-    trans_dict={}
-    for key,value in tc2idx.items():
-        trans_dict[value]=key
-    
-    #parameters
-    output_size=len(tag_class_li)+1
-    token_size=len(token_li)+1
-    hidden_size=128
-    num_layers=2
-    num_heads=4
-    dim_k=32
-    dim_v=32
-    pad_idx=len(token_li)
-    mask_idx=len(tag_class_li)
-
-    epochs=50
-    lr=1e-3
-    torch.manual_seed(2)
-    metric=my_loss(mask_idx)
-    model=Attn_Model(output_size,token_size,hidden_size,num_layers,num_heads,dim_k,dim_v,pad_idx)
-
-    print('Start Training...')
-    train(model,epochs,lr,metric,train_loader,dev_loader)
-
-    print('Start Loading Saved Model...')
-    model.load_state_dict(torch.load('bm.ckpt'))
-    print('Loaded Done!')
-
-    prediction=predict_full(model,test_loader,test_set,trans_dict)
-
-    submit('final_test_cp.txt','胡小白_addr_parsing_runid.txt',prediction)
-
-    
-
-
-
-
-
-
-
-    
