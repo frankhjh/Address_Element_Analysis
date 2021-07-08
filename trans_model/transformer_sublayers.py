@@ -60,7 +60,7 @@ class MultiHeadAttention(nn.Module):
         #print(output.shape,q.shape)
         output+=residual #+residual
         output=self.layer_norm(output) #layer normalization
-        return output
+        return output,attn
 
 class PositionwiseFeedForward(nn.Module):
     '''two feed forward layers'''
