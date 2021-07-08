@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from trans_model.transformer_encoder import Encoder
+from trans_model.transformer import Encoder
 
 
 class Attn_Model(nn.Module):
@@ -15,4 +15,4 @@ class Attn_Model(nn.Module):
     def forward(self,x):
         tmp=self.encoder(x)
         out=self.softmax(self.out(tmp))
-        return out        
+        return out 

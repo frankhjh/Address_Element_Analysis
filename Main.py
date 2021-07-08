@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch import optim
-from model import Attn_Model
+from encoder_model import Attn_Model
 from loss import my_loss
 from data_prepare import prepare_data
 from data_loader import train_dev_loader,test_loader
