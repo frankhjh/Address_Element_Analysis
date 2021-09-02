@@ -5,7 +5,7 @@ from utils.help import argmax,log_sum_exp
 
 
 class BiLSTM_CRF(nn.Module):
-    def __init__(self,vocab_size,labels_dict,embedding_dim,hidden_dim,batch_size=32):
+    def __init__(self,vocab_size,labels_dict,embedding_dim,hidden_dim):
         super(BiLSTM_CRF,self).__init__()
         self.embedding_dim=embedding_dim
         self.hidden_dim=hidden_dim
@@ -34,19 +34,17 @@ class BiLSTM_CRF(nn.Module):
         # NEVER FROM THR STOP LABEL
         self.transition_mat.data[:,labels_dict['<STOP>']]=-10000
         # FROM PAD CAN ONLY TO PAD OR STOP,NO OTHERS
-        self.transition_mat.data[labels_dict['<START>'],labels_dict['PAD']]=-10000
-        self.transition_mat.data[labels_dict['<STOP>']+1:,labels_dict['PAD']]=-10000
+        self.transition_mat.data[labels_dict['<START>'],labels_dict['<PAD>']]=-10000
+        self.transition_mat.data[labels_dict['<STOP>']+1:,labels_dict['<PAD>']]=-10000
 
-        self.batch_size=batch_size # generally, not a good idea to put it in the model
-
-    def init_hidden(self,predict=False):
+    def init_hidden(self,batch_size,predict=False):
         # the first dim = num of direction * num of layers
         if predict:
             return (torch.randn(2, 1, self.hidden_dim // 2),
                     torch.randn(2, 1, self.hidden_dim // 2))
         
-        return (torch.randn(2*1,self.batch_size,self.hidden_dim//2),
-                torch.randn(2*1,self.batch_size,self.hidden_dim//2))
+        return (torch.randn(2*1,batch_size,self.hidden_dim//2),
+                torch.randn(2*1,batch_size,self.hidden_dim//2))
     
     def _forward_alg(self,feats): # feats are the output of lstm (emit matrix)
         init_alphas=torch.full((1,self.labelset_size),-10000.)
@@ -106,10 +104,10 @@ class BiLSTM_CRF(nn.Module):
             lstm_out=lstm_out.view(len(x),self.hidden_dim)
             lstm_feats=self.hidden2label(lstm_out)
             return lstm_feats
-
-        embeddings=self.word_embeds(x).view(x.size(1),self.batch_size,-1)
+        self.hidden=self.init_hidden(batch_size=x.size(0))
+        embeddings=self.word_embeds(x).view(x.size(1),x.size(0),-1)
         lstm_out,self.hidden=self.lstm(embeddings,self.hidden) # lstm_out:[seq_len,batch_size,hidden_dim]
-        lstm_out=lstm_out.premute(1,0,2) # [batch_size,seq_len,hidden_dim]
+        lstm_out=lstm_out.permute(1,0,2) # [batch_size,seq_len,hidden_dim]
 
         lstm_feats=self.hidden2label(lstm_out)
         return lstm_feats
@@ -187,16 +185,18 @@ class BiLSTM_CRF(nn.Module):
     # batch loss
     def neg_log_likelihood(self,x,y): # (x,y) -> one batch
         feats=self._get_lstm_features(x)
-        scores=[]
+        batch_loss=torch.tensor(0.,requires_grad=True)
         for i in range(feats.size(0)):
             forward_score=self._forward_alg_faster(feats[i])
             gold_score=self._score_sequence(feats[i],y[i])
-            scores.append(forward_score-gold_score)
-        return torch.sum(torch.tensor(scores))
+            loss=forward_score-gold_score
+            batch_loss=batch_loss+loss
+        
+        return batch_loss
     
     def forward(self,x): # x -> one sequence
 
-        lstm_feats=self._get_lstm_features(x)
+        lstm_feats=self._get_lstm_features(x,predict=True)
         score,label_seq=self._viterbi_decode_faster(lstm_feats)
         return score,label_seq
     
