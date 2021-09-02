@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import json
-from data_reader import read_conll_file,read_txt_file
+from utils.data_reader import read_conll_file,read_txt_file
 
 def gen_labels(train_file,dev_file):
     all_labels=set()
@@ -11,6 +11,6 @@ def gen_labels(train_file,dev_file):
     for item in train_set+dev_set:
         all_labels.update(item[1])
     
-    with open('../output/labels.json','w') as f:
+    with open('./output/labels.json','w') as f:
         json.dump(list(all_labels),f)
 

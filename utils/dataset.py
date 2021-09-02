@@ -1,28 +1,26 @@
 from torch.utils.data import Dataset
 
 class Train_Dev_Dataset(Dataset):
-    def __init__(self,addr,label):
+    def __init__(self,addrs,labels):
         super(Train_Dev_Dataset,self).__init__()
-        self.addr=addr
-        self.label=label
+        self.addrs=addrs
+        self.labels=labels
         
     def __len__(self):
-        return len(self.addr)
+        return len(self.addrs)
         
     def __getitem__(self,idx):
-        return self.addr[idx],self.label[idx]
-    
+        return self.addrs[idx],self.labels[idx]
 
 class Test_Dataset(Dataset):
-    def __init__(self,addr):
+    def __init__(self,addrs):
         super(Test_Dataset,self).__init__()
-        self.addr=addr
+        self.addrs=addrs
     
     def __len__(self):
-        return len(self.addr)
-        
+        return len(self.addrs)
+    
     def __getitem__(self,idx):
-        return self.addr[idx]
-
-
+        return self.addrs[idx],self.labels[idx]
+        
 
