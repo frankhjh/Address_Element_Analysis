@@ -38,18 +38,34 @@ def train(model,train_dataloader,dev_dataloader,epochs,lr,device):
         print('epoch {},training loss:{}'.format(epoch,train_loss)+' validation loss:{}'.format(dev_loss))
     print('>>Training done!')
 
-def predict(model,test_dataloader):
+def predict(model,test_dataloader,labels_dict,test_set):
     model.load_state_dict(torch.load('./train_out/bm.ckpt'))
     label_seqs=[]
-    for x in tqdm(test_dataloader):
-        score,label_seq=model(x)
+
+    idx2label={}
+    for key,value in labels_dict.items():
+        idx2label[value]=key
+
+    for idx,x in tqdm(enumerate(test_dataloader)):
+        #print(x.shape)
+        score,idx_seq=model(x)
+        label_seq=[idx2label[i] for i in idx_seq][:len(test_set[idx])] # DELETE PAD
         label_seqs.append(label_seq)
     with open('./output/tmp_predict.json','w') as f:
         json.dump(label_seqs,f)
     
 
-def submit():
-    pass
+def submit(test_file,pred_file):
+    with open(pred_file,'r') as f:
+        pred=json.load(f)
+    
+    with open('./output/final_out.txt','w',encoding='utf-8') as f0:
+
+        with open(test_file,'r',encoding='utf-8') as f1:
+            for idx,line in enumerate(f1):
+                comp_line=line.strip()+'\u0001'+' '.join(pred[idx])
+                f0.write(comp_line+'\n')
+    print('Done!')
 
 def Main():
     # compute the max len and do the encoding of sequences
@@ -62,13 +78,17 @@ def Main():
     test_dataloader=prep_data('test',max_len,test_set)
     print('>>data prepared!')
     
-    # build lstm-crf model
+    # # build lstm-crf model
     model=BiLSTM_CRF(vocab_size,labels_dict,64,64)
     print('>>model built!')
     # train model
-    train(model,train_dataloader,dev_dataloader,epochs=30,lr=1e-2,device='cpu')
+    train(model,train_dataloader,dev_dataloader,epochs=10,lr=1e-2,device='cpu')
+    
     # predict
-    predict(model,test_dataloader)
+    predict(model,test_dataloader,labels_dict,test_set)
+
+    # submit
+    submit('./data/final_test.txt','./output/tmp_predict.json')
 
 
 if __name__=='__main__':

@@ -37,12 +37,8 @@ class BiLSTM_CRF(nn.Module):
         self.transition_mat.data[labels_dict['<START>'],labels_dict['<PAD>']]=-10000
         self.transition_mat.data[labels_dict['<STOP>']+1:,labels_dict['<PAD>']]=-10000
 
-    def init_hidden(self,batch_size,predict=False):
+    def init_hidden(self,batch_size):
         # the first dim = num of direction * num of layers
-        if predict:
-            return (torch.randn(2, 1, self.hidden_dim // 2),
-                    torch.randn(2, 1, self.hidden_dim // 2))
-        
         return (torch.randn(2*1,batch_size,self.hidden_dim//2),
                 torch.randn(2*1,batch_size,self.hidden_dim//2))
     
@@ -98,10 +94,10 @@ class BiLSTM_CRF(nn.Module):
     
     def _get_lstm_features(self,x,predict=False): # x:[batch_size,seq_len]
         if predict:
-            self.hidden=self.init_hidden(predict=predict)
+            self.hidden=self.init_hidden(batch_size=1)
             embeddings=self.word_embeds(x).view(x.size(1),1,-1)
             lstm_out,self.hidden=self.lstm(embeddings,self.hidden)
-            lstm_out=lstm_out.view(len(x),self.hidden_dim)
+            lstm_out=lstm_out.view(x.size(1),self.hidden_dim)
             lstm_feats=self.hidden2label(lstm_out)
             return lstm_feats
         self.hidden=self.init_hidden(batch_size=x.size(0))
