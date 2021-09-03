@@ -21,6 +21,6 @@ class Test_Dataset(Dataset):
         return len(self.addrs)
     
     def __getitem__(self,idx):
-        return self.addrs[idx],self.labels[idx]
+        return self.addrs[idx]
         
 
