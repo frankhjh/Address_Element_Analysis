@@ -4,6 +4,14 @@ import torch
 import torch.optim as optim
 from tqdm import tqdm
 import json
+import argparse
+#torch.manual_seed(1)
+
+parser=argparse.ArgumentParser(description='training parameters')
+parser.add_argument('--epochs',type=int)
+parser.add_argument('--learning_rate',type=float)
+parser.add_argument('--device',type=str)
+args=parser.parse_args()
 
 def validate(model,dev_dataloader,device):
     dev_loss=0.0
@@ -47,7 +55,6 @@ def predict(model,test_dataloader,labels_dict,test_set):
         idx2label[value]=key
 
     for idx,x in tqdm(enumerate(test_dataloader)):
-        #print(x.shape)
         score,idx_seq=model(x)
         label_seq=[idx2label[i] for i in idx_seq][:len(test_set[idx])] # DELETE PAD
         label_seqs.append(label_seq)
@@ -82,7 +89,11 @@ def Main():
     model=BiLSTM_CRF(vocab_size,labels_dict,64,64)
     print('>>model built!')
     # train model
-    train(model,train_dataloader,dev_dataloader,epochs=10,lr=1e-2,device='cpu')
+    # load parameters
+    epochs=args.epochs
+    lr=args.learning_rate
+    device=args.device
+    train(model,train_dataloader,dev_dataloader,epochs=epochs,lr=lr,device=device)
     
     # predict
     predict(model,test_dataloader,labels_dict,test_set)
