@@ -1,6 +1,6 @@
 # Chinese Address Element Parsing
 
-## Itroduction
+## Introduction
 The aim of this task is to transform the address sequence into label sequence, each element of the address corresponds to one label. There are 21 different kinds of tags, for example, province(prov),city,district and so on. Besides, the task uses the **BIEO** system, for example, 'B' represents the beginning of one element,'E' represents the end of one element.
 
 For a specific location of one address, a complete label will be something like 'B-prov'.
