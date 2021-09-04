@@ -22,7 +22,7 @@ Of course,you can change the parameters as you like. What'more,if you want to ch
 ## Output
 The final output after you run the code will be save in `./output/final_out.txt`,I also save the intermediate result in file `./output/tmp_predict.json`,if you are interested, you could check it too.
 
-## Some reference
+## Some references
 [Very good introduction about LSTM-CRF model](https://www.cnblogs.com/createMoMo/p/7529885.html)
 
 [Pytorch Official Tutorial](https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html#bi-lstm-conditional-random-field-discussion)
